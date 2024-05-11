@@ -1,0 +1,91 @@
+<?php 
+if ($this->isLoggedIn()): 
+    $csvLinks = $this->getCsvLinksByCustomerId();
+    $totalLinks = count($csvLinks);
+    $linksPerPage = 2;
+    $totalPages = ceil($totalLinks / $linksPerPage);
+    $currentPage = isset($_GET['page']) ? $_GET['page'] : 1;
+    $startIndex = ($currentPage - 1) * $linksPerPage;
+    $paginatedCsvLinks = array_slice($csvLinks, $startIndex, $linksPerPage);
+?>
+
+<?php if (!empty($paginatedCsvLinks)): ?>
+    <h2>Your Uploaded CSVs:</h2>
+    <ul>
+        <?php foreach ($paginatedCsvLinks as $csvLink): ?>
+            <li>
+            <?php if (is_array($csvLink)): ?>
+                <a href="<?php echo isset($csvLink['absolute']) ? $csvLink['absolute'] : (isset($csvLink['relative']) ? $csvLink['relative'] : ''); ?>">
+                    <?php echo isset($csvLink['absolute']) ? $csvLink['absolute'] : (isset($csvLink['relative']) ? $csvLink['relative'] : ''); ?>
+                </a>
+            <?php else: ?>
+                <span><?php echo $csvLink; ?></span>
+            <?php endif; ?>
+
+            <form action="<?php echo $block->getUrl('custom/index/addtocart'); ?>" method="post" style="display: inline;">
+                <!-- Store relative path in hidden field for Add to Cart -->
+                <input type="hidden" name="csv_file_path" value="<?php echo isset($csvLink['relative']) ? $csvLink['relative'] : ''; ?>">
+                <button type="submit" class="action tocart primary" title="Add to Cart">
+                    <span>Add to Cart</span>
+                </button>
+            </form>
+
+            <form onsubmit="downloadCsv(event, '<?php echo isset($csvLink['absolute']) ? $csvLink['absolute'] : ''; ?>');" style="display: inline;">
+                <!-- Store absolute path in hidden field for Download CSV -->
+                <input type="hidden" name="csv_file_path_download" value="<?php echo isset($csvLink['absolute']) ? $csvLink['absolute'] : ''; ?>">
+                <button type="submit" class="action tocart primary" title="Download CSV">
+                    <span>Download Csv</span>
+                </button>
+            </form>
+        </li>
+        <?php endforeach; ?>
+    </ul>
+
+    <!-- Pagination Links -->
+    <?php if ($totalPages > 1): ?>
+        <div class="pagination" style="text-align: center;">
+            <!-- Previous page button -->
+            <?php if ($currentPage > 1): ?>
+                <a href="?page=<?php echo $currentPage - 1; ?>" class="prev-btn">Previous</a>
+            <?php endif; ?>
+
+            <!-- Display a gap between Previous and Next buttons -->
+            <?php if ($currentPage > 1 && $currentPage < $totalPages): ?>
+                <span class="gap"> | </span>
+            <?php endif; ?>
+
+            <!-- Next page button -->
+            <?php if ($currentPage < $totalPages): ?>
+                <a href="?page=<?php echo $currentPage + 1; ?>" class="next-btn">Next</a>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
+<?php else: ?>
+    <p>No CSVs uploaded yet.</p>
+<?php endif; ?>
+<?php endif; ?>
+
+<script type="text/javascript">
+    function downloadCsv(event, absolutePath) {
+        // Prevent default form submission action
+        event.preventDefault();
+
+        // Create a hidden link element
+        var link = document.createElement('a');
+        link.style.display = 'none';
+        document.body.appendChild(link);
+
+        // Set the href attribute to the absolute CSV file path
+        link.href = absolutePath;
+
+        // Set the download attribute to force download
+        link.setAttribute('download', '');
+
+        // Trigger a click event on the link
+        link.click();
+
+        // Clean up
+        document.body.removeChild(link);
+    }
+</script>

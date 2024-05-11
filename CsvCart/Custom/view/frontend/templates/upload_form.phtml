@@ -1,0 +1,8 @@
+<?php if ($block->isLoggedIn()): ?>
+<div class="csv-upload-form">
+    <form action="<?php echo $block->getFormAction() ?>" method="post" enctype="multipart/form-data">
+        <input type="file" name="csv_file" id="csv_file">
+        <button type="submit">Upload CSV</button>
+    </form>
+</div>
+<?php endif; ?>
